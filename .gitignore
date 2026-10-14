@@ -1,0 +1,5 @@
+# VS Code Config
+.vscode/
+
+# Python Env
+pypy*/
