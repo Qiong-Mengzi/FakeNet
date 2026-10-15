@@ -92,3 +92,26 @@ class _MtManager:
 
 
 MtManager = _MtManager()
+
+mt_register = MtManager.register
+"""注册组件
+
+Args:
+    name (str): 组件注册名
+
+Returns:
+    Callable[[type[AnyMt]], type[AnyMt]]: 一个wrap函数
+
+Examples:
+    >>> @MtManager.register('test:mt/pos')
+    ... @dataclass(slots=True)
+    ... class PosMt(MonoTag):
+    ...   x: int
+    ...   y: int
+
+该方法应作为装饰器使用
+
+`MtManager.register`的别名
+"""
+
+__all__ = ["MonoTag", "AnyMt", "MtManager", "mt_register"]
