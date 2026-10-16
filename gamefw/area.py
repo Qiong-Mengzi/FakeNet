@@ -1,9 +1,11 @@
 from collections.abc import Iterable, Iterator
 from typing import Any, Self, cast
+import logging
 
 from .monotag import MonoTag, MtManager
 
 Archetype = frozenset[str]
+LOGGER = logging.getLogger("gamefw.area")
 
 
 class AreaData:
@@ -18,9 +20,9 @@ class AreaData:
 
     def __setitem__(self, key: str, value: MonoTag):
         if key not in self._data_ref:
-            raise KeyError
+            raise KeyError(key)
         if key != value.mt_name():
-            raise ValueError
+            raise ValueError(key, value)
 
         self._data_ref[key] = value
 
@@ -32,7 +34,7 @@ class AreaData:
 
     def update(self, value: MonoTag):
         if value.mt_name() not in self._data_ref:
-            raise KeyError
+            raise KeyError(value.mt_name())
 
         self._data_ref[value.mt_name()] = value
 
@@ -42,7 +44,7 @@ class AreaQuery(Iterable[int]):
 
     def __init__(self, arch: Archetype, manager: "AreaManager"):
         if len(arch) == 0:
-            raise ValueError
+            raise ValueError(arch)
 
         self._arch = arch
         self._cache_ver: int = -1
@@ -127,7 +129,7 @@ class AreaManager:
 
     def modify(self, areaid: int, new_data_mov: dict[str, MonoTag]):
         if areaid not in self.areas and areaid not in self._area_modify_cache:
-            raise KeyError
+            raise KeyError(areaid)
         self._area_modify_cache[areaid] = new_data_mov
 
     def access(self, areaid: int):
@@ -136,10 +138,10 @@ class AreaManager:
         elif areaid in self._area_modify_cache:
             modified_data = self._area_modify_cache[areaid]
             if modified_data is None:
-                raise RuntimeError
+                raise RuntimeError("AreaID is not Existed and Modified Data is None")
             return AreaData(modified_data)
         else:
-            raise KeyError
+            raise KeyError(areaid)
 
     def query(self, arch: Archetype):
         return AreaQuery(arch, self)
@@ -169,6 +171,7 @@ class AreaManager:
             for mt_name, mt_data in area_data.items():
                 mt_type = MtManager.query(mt_name)
                 if mt_type is None:
+                    LOGGER.warning(f"Unknown MonoTag Type: {repr(mt_name)}")
                     continue
                 buf[mt_name] = mt_type.deserialize(mt_data)
             inst._area_modify_cache[int(areaid)] = buf

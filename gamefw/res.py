@@ -1,9 +1,9 @@
 from typing import Generic, TypeVar
-
+import logging
 from abc import ABC, abstractmethod
 
 AnyRes = TypeVar("AnyRes")
-
+LOGGER = logging.getLogger('gamefw.res')
 
 class ResManager(ABC, Generic[AnyRes]):
     def __init__(self):
@@ -15,6 +15,7 @@ class ResManager(ABC, Generic[AnyRes]):
 
     def query_res(self, key: str) -> AnyRes | None:
         if key not in self._reslist:
+            LOGGER.warning(f'Resource key {repr(key)} is not found')
             return None
         if key not in self._res_cache:
             self._res_cache[key] = self._loadres(key)
