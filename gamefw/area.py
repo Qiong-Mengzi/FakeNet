@@ -1,6 +1,7 @@
 from collections.abc import Iterable, Iterator
+from typing import Any, Self, cast
 
-from .monotag import MonoTag
+from .monotag import MonoTag, MtManager
 
 Archetype = frozenset[str]
 
@@ -37,7 +38,7 @@ class AreaData:
 
 
 class AreaQuery(Iterable[int]):
-    __slots__ = ("_arch", "_query_cache", "_cache_ver", '_manager')
+    __slots__ = ("_arch", "_query_cache", "_cache_ver", "_manager")
 
     def __init__(self, arch: Archetype, manager: "AreaManager"):
         if len(arch) == 0:
@@ -142,3 +143,35 @@ class AreaManager:
 
     def query(self, arch: Archetype):
         return AreaQuery(arch, self)
+
+    def serialize(self) -> dict[str, Any]:
+        self.apply_area_modify()
+        return {
+            "id_counter": self.id_counter,
+            "areas": {
+                areaid: {
+                    mt_name: mt_data.serialize()
+                    for mt_name, mt_data in area_data.items()
+                }
+                for areaid, area_data in self.areas.items()
+            },
+        }
+
+    @classmethod
+    def deserialize(cls, rawdata: dict[str, Any]) -> Self:
+        inst = cls()
+        inst.id_counter = rawdata["id_counter"]
+
+        for areaid, area_data in cast(
+            dict[str, dict[str, Any]], rawdata["areas"]
+        ).items():
+            buf: dict[str, MonoTag] = dict()
+            for mt_name, mt_data in area_data.items():
+                mt_type = MtManager.query(mt_name)
+                if mt_type is None:
+                    continue
+                buf[mt_name] = mt_type.deserialize(mt_data)
+            inst._area_modify_cache[int(areaid)] = buf
+
+        inst.apply_area_modify()
+        return inst
