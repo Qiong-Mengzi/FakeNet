@@ -12,5 +12,5 @@ class QuitEvent(Event):
 
 
 @dataclass(slots=True)
-class ScheTickEvent:
+class ScheTickEvent(Event):
     pass
