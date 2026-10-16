@@ -37,7 +37,7 @@ class AreaData:
 
 
 class AreaQuery(Iterable[int]):
-    __slots__ = ("_arch", "_query_cache", "_cache_ver")
+    __slots__ = ("_arch", "_query_cache", "_cache_ver", '_manager')
 
     def __init__(self, arch: Archetype, manager: "AreaManager"):
         if len(arch) == 0:
@@ -58,7 +58,7 @@ class AreaQuery(Iterable[int]):
             return
 
         self._query_cache = set[int].intersection(
-            set(), *[self._manager.area_map.get(s, set()) for s in self._arch]
+            *[self._manager.area_map.get(s, set()) for s in self._arch]
         )
         self._cache_ver = manager_ver
 
