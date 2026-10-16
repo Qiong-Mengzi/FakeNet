@@ -5,3 +5,5 @@
 pypy*/
 
 __pycache__/
+
+*.log
