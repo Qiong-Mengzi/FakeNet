@@ -62,3 +62,83 @@ on_nonhover(hover) -> [normal]
 通常来说，这样子唯一不知道怎么变化的，只有文字了
 
 让「我们」再试试，至少能...抓住些什么...
+
+---
+
+我们似乎对于文字，还能用另一种方式，Ref
+
+```python
+class TextRef:
+    def __init__(self, refid: int, init_text: str):
+        self._refid = refid
+        self._text = init_text
+        self._is_modified: bool = False
+
+    def modify(self, new_text: str):
+        self._text = new_text
+        self._is_modified = True
+
+    @property
+    def text(self):
+        return self._text
+
+    def is_modified(self):
+        return self._is_modified
+```
+
+...对吗
+
+......对吗??
+
+好多此一举啊...他喵的...
+
+但如果真的让数据变化时通知UI组件，就会产生一些奇奇怪怪的问题
+
+比如，(好累...)
+
+...谁通知，通过什么接收，如何处理
+
+以及最重要的，按钮被隐藏了，它不接收了，或者某些UI换了个数据源，该怎么办...
+
+好头大喵...
+
+...
+
+显然「我们」不太能这么做，原因很简单，「我们」需要弄清楚数据与UI组件之间的依赖
+
+还有一个~~擦车~~(缓存/cache)的问题，是缓存每个UI组件的中间状态，还是缓存渲染过程的中间状态...?
+
+如果是后者，前面改了，后面所有部分就要重绘；如果是前者，每次渲染都要按顺序blit一遍...
+
+显然用后者...对吗
+
+那么我们需要一个Collection，来装这些缓存
+
+感觉有点麻烦...
+
+---
+
+看来我们要将这个Button拆开了
+
+- FSM
+- 样式映射表
+- ...?
+
+在此之前我们的UI只有一套样式，有变化直接换
+
+但似乎这样子...
+
+而且我们的游戏似乎完全没有实时改变UI大小之类的要求捏
+
+那么不妨将样式/Style拆开...
+
+...额, 好像不太能这么做欸？
+
+我们事实上需要依赖一个东西，大小和位置，主要是大小(w, h)
+
+img有(w, h)，border有(w, h)，text有(w, h)
+
+但...事实...是这样吗...
+
+---
+
